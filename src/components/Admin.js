@@ -3,6 +3,20 @@ import styled from 'styled-components';
 import QRCode from 'react-qr-code';
 import axios from 'axios';
 
+// 현재 프라이빗 IP 감지 함수
+const getCurrentIP = () => {
+  // 현재 URL에서 hostname 추출
+  const hostname = window.location.hostname;
+  
+  // localhost나 127.0.0.1이 아닌 경우 그대로 사용
+  if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    return hostname;
+  }
+  
+  // localhost인 경우 현재 PC의 IP 주소 사용
+  return '192.168.45.152';
+};
+
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -204,7 +218,7 @@ export default function Admin() {
                     <DangerButton onClick={() => deleteRoom(roomId)}>삭제</DangerButton>
                   </div>
                   <div style={{ marginTop: 10, display: 'flex', justifyContent: 'center' }}>
-                    <QRCode value={`${window.location.origin}/room/${roomId}`} size={140} />
+                    <QRCode value={`http://${getCurrentIP()}:3000/room/${roomId}`} size={140} />
                   </div>
                 </RoomCard>
               ))}
