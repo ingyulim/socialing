@@ -1,70 +1,101 @@
-# Getting Started with Create React App
+# 🎯 소셜링 - QR 코드 기반 웹앱
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+사람들이 QR 코드를 스캔하여 방에 참여하고, 관리자가 점수를 관리할 수 있는 웹앱입니다.
 
-## Available Scripts
+## 🚀 기능
 
-In the project directory, you can run:
+- **방 생성**: 오늘 날짜(월일)로 자동 방 번호 생성
+- **QR 코드**: 방 참여를 위한 QR 코드 자동 생성
+- **닉네임 중복 방지**: 같은 방 내에서 중복되지 않는 닉네임 사용
+- **실시간 참가자 목록**: 참가자들의 실시간 목록 확인
+- **관리자 페이지**: 점수 플러스/마이너스/직접 입력 기능
 
-### `npm start`
+## 🛠️ 설치 및 실행
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 1. 의존성 설치
+```bash
+npm install
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 2. 개발 서버 실행 (프론트엔드 + 백엔드 동시 실행)
+```bash
+npm run dev
+```
 
-### `npm test`
+### 3. 개별 실행
+```bash
+# 백엔드 서버만 실행
+npm run server
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# 프론트엔드만 실행 (다른 터미널에서)
+npm start
+```
 
-### `npm run build`
+## 📱 사용법
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 일반 사용자
+1. 홈페이지에서 "방 만들기" 버튼 클릭
+2. 생성된 QR 코드를 다른 사람들에게 공유
+3. QR 코드를 스캔하여 방에 참여
+4. 닉네임 입력 후 참여 완료
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 관리자
+1. "관리자 페이지로 이동" 링크 클릭
+2. 생성된 방들을 확인
+3. 각 참가자의 점수를 관리:
+   - `+` 버튼: 점수 +1
+   - `-` 버튼: 점수 -1
+   - 숫자 입력 후 Enter: 직접 점수 설정
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🎨 디자인 특징
 
-### `npm run eject`
+- **모던한 그라데이션**: 보라색 계열의 아름다운 그라데이션 배경
+- **글래스모피즘**: 반투명 카드와 블러 효과
+- **반응형 디자인**: 모바일과 데스크톱 모두 지원
+- **직관적인 UI**: 사용하기 쉬운 버튼과 입력 필드
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 🔧 기술 스택
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- **프론트엔드**: React, React Router, Styled Components
+- **백엔드**: Express.js, Node.js
+- **QR 코드**: react-qr-code
+- **HTTP 클라이언트**: Axios
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 📁 프로젝트 구조
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```
+socialing/
+├── src/
+│   ├── components/
+│   │   ├── Home.js          # 홈페이지 (방 생성, QR 코드)
+│   │   ├── Room.js          # 방 참여 페이지
+│   │   └── Admin.js         # 관리자 페이지
+│   ├── styles/
+│   │   └── GlobalStyle.js   # 글로벌 스타일
+│   ├── App.js               # 메인 앱 컴포넌트
+│   └── index.js             # 앱 진입점
+├── server.js                # Express 서버
+└── package.json
+```
 
-## Learn More
+## 🌐 API 엔드포인트
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- `POST /api/rooms` - 방 생성
+- `GET /api/rooms/:roomId` - 방 정보 조회
+- `POST /api/rooms/:roomId/participants` - 참가자 추가
+- `PUT /api/participants/:participantId/score` - 점수 업데이트
+- `GET /api/admin/rooms` - 모든 방 목록 (관리자용)
+- `GET /api/rooms/:roomId/participants` - 방 참가자 목록
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🎯 사용 시나리오
 
-### Code Splitting
+1. **이벤트 관리**: 행사나 이벤트에서 참가자들의 참여도 관리
+2. **게임**: 팀별 점수 경쟁 게임
+3. **교육**: 수업 참여도나 퀴즈 점수 관리
+4. **모임**: 소규모 모임에서의 활동 점수 관리
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 📝 주의사항
 
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- 현재는 메모리 기반 저장소를 사용하므로 서버 재시작 시 데이터가 초기화됩니다
+- 프로덕션 환경에서는 데이터베이스 연동을 권장합니다
+- CORS 설정이 개발 환경에 맞춰져 있습니다
