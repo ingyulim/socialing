@@ -152,6 +152,49 @@ export default function Admin() {
     }
   };
 
+
+  const updateScore = async (participantId, action, value = null) => {
+    try {
+      let scoreData = { action };
+      if (value !== null) {
+        scoreData.value = parseInt(value);
+      }
+      
+      const res = await axios.put(`http://${getCurrentIP()}:3001/api/participants/${participantId}/score`, scoreData, { headers });
+      if (res.data.success) {
+        loadRooms(); // 방 목록 새로고침
+      }
+    } catch (e) {
+      setMessage('점수 업데이트 실패');
+    }
+  };
+
+
+
+  const deleteParticipant = async (participantId, participantName) => {
+    const confirmPassword = prompt(`"${participantName}" 참가자를 삭제하시겠습니까?\n\n확인을 위해 관리자 비밀번호를 입력하세요:`);
+    
+    if (!confirmPassword) {
+      return; // 취소
+    }
+    
+    try {
+      const res = await axios.delete(`http://${getCurrentIP()}:3001/api/participants/${participantId}`, {
+        data: { adminPassword: confirmPassword },
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (res.data.success) {
+        setMessage('참가자가 삭제되었습니다.');
+        loadRooms(); // 방 목록 새로고침
+        setTimeout(() => setMessage(''), 3000);
+      }
+    } catch (e) {
+      setMessage(e.response?.data?.message || '참가자 삭제 실패');
+    }
+  };
+
+
   const deleteRoom = async (roomId) => {
     setMessage('');
     try {
@@ -184,7 +227,10 @@ export default function Admin() {
   return (
     <div className="card">
       <Wrapper>
-        <Title>관리자 대시보드</Title>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <Title style={{ margin: 0 }}>관리자 대시보드</Title>
+          <Button onClick={() => window.location.href = '/'}>🏠 홈으로</Button>
+        </div>
 
         <Card>
           <Title>비밀번호 변경</Title>
@@ -220,6 +266,77 @@ export default function Admin() {
                   <div style={{ marginTop: 10, display: 'flex', justifyContent: 'center' }}>
                     <QRCode value={`http://${getCurrentIP()}:3000/room/${roomId}`} size={140} />
                   </div>
+                  <div style={{ marginTop: 15 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 8, color: '#2c3e50' }}>참여자 목록</div>
+                    {room.participants.length === 0 ? (
+                      <Muted>아직 참여자가 없습니다.</Muted>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {room.participants.map((participant) => (
+                          <div key={participant.id} style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center',
+                            padding: '8px 12px',
+                            background: 'rgba(0,0,0,0.05)',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(0,0,0,0.1)'
+                          }}>
+                            <div style={{ fontWeight: 500 }}>#{participant.number || 0} {participant.nickname}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <Button 
+                                style={{ padding: '4px 8px', fontSize: '12px', minWidth: '30px' }}
+                                onClick={() => updateScore(participant.id, 'subtract')}
+                              >
+                                -
+                              </Button>
+                              <span style={{ 
+                                minWidth: '30px', 
+                                textAlign: 'center', 
+                                fontWeight: 600,
+                                color: '#2c3e50'
+                              }}>
+                                {participant.score || 0}
+                              </span>
+                              <Button 
+                                style={{ padding: '4px 8px', fontSize: '12px', minWidth: '30px' }}
+                                onClick={() => updateScore(participant.id, 'add')}
+                              >
+                                +
+                              </Button>
+                              <Input
+                                type="number"
+                                placeholder="직접입력"
+                                style={{ 
+                                  width: '60px', 
+                                  padding: '4px 6px', 
+                                  fontSize: '12px',
+                                  textAlign: 'center'
+                                }}
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') {
+                                    updateScore(participant.id, 'set', e.target.value);
+                                    e.target.value = '';
+                                  }
+                                }}
+                              />
+                              <DangerButton 
+                                style={{ 
+                                  padding: '4px 8px', 
+                                  fontSize: '10px', 
+                                  minWidth: '40px'
+                                }}
+                                onClick={() => deleteParticipant(participant.id, participant.nickname)}
+                              >
+                                삭제
+                              </DangerButton>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                 </RoomCard>
               ))}
             </Grid>

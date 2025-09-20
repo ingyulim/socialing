@@ -47,6 +47,16 @@ function generateId() {
 function generateToken() {
   return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
 }
+// 관리자 비밀번호 초기화
+let adminPassword = readAdminPassword();
+
+// 비밀번호 파일 변경 감지 (실시간 업데이트)
+fs.watchFile(PASSWORD_FILE, () => {
+  adminPassword = readAdminPassword();
+  console.log('관리자 비밀번호가 업데이트되었습니다.');
+});
+
+
 
 function requireAdmin(req, res, next) {
   const token = req.header('x-admin-token');
@@ -153,15 +163,27 @@ app.post('/api/rooms/:roomId/participants', (req, res) => {
   if (!rooms[roomId]) {
     return res.status(404).json({ success: false, message: '방을 찾을 수 없습니다.' });
   }
+  
+  // 기존 참가자 확인 (이미 있으면 그대로 반환)
   const existingParticipant = rooms[roomId].participants.find(p => p.nickname === nickname);
   if (existingParticipant) {
-    return res.status(400).json({ success: false, message: '이미 사용 중인 닉네임입니다.' });
+    return res.json({ success: true, participant: existingParticipant, isReturning: true });
   }
+  
+  // 새 참가자 추가 (순차 번호 부여)
+  const participantNumber = rooms[roomId].participants.length + 1;
   const participantId = generateId();
-  const participant = { id: participantId, nickname, score: 0, joinedAt: new Date() };
+  const participant = { 
+    id: participantId, 
+    nickname, 
+    number: participantNumber, 
+    score: 0, 
+    joinedAt: new Date() 
+  };
+  
   rooms[roomId].participants.push(participant);
   participants[participantId] = participant;
-  res.json({ success: true, participant });
+  res.json({ success: true, participant, isNew: true });
 });
 
 // 점수 업데이트 (관리자 전용)
@@ -186,6 +208,42 @@ app.put('/api/participants/:participantId/score', requireAdmin, (req, res) => {
       return res.status(400).json({ success: false, message: '잘못된 액션입니다.' });
   }
   res.json({ success: true, participant });
+});
+
+
+// 참가자 삭제 (관리자 전용, 비밀번호 재확인)
+app.delete('/api/participants/:participantId', (req, res) => {
+  const { participantId } = req.params;
+  const { adminPassword: inputPassword } = req.body;
+  
+  // 비밀번호 확인
+  if (inputPassword !== adminPassword) {
+    return res.status(401).json({ success: false, message: '비밀번호가 틀렸습니다.' });
+  }
+  
+  const participant = participants[participantId];
+  if (!participant) {
+    return res.status(404).json({ success: false, message: '참가자를 찾을 수 없습니다.' });
+  }
+  
+  // 해당 방에서 참가자 제거
+  for (const roomId in rooms) {
+    const participantIndex = rooms[roomId].participants.findIndex(p => p.id === participantId);
+    if (participantIndex !== -1) {
+      rooms[roomId].participants.splice(participantIndex, 1);
+      
+      // 번호 재정렬
+      rooms[roomId].participants.forEach((p, index) => {
+        p.number = index + 1;
+      });
+      break;
+    }
+  }
+  
+  // 전역 참가자 목록에서도 제거
+  delete participants[participantId];
+  
+  res.json({ success: true, message: '참가자가 삭제되었습니다.' });
 });
 
 app.listen(PORT, () => {

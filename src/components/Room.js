@@ -22,6 +22,22 @@ const ParticipantList = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.2);
 `;
 
+
+const UserInfo = styled.div`
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  padding: 10px 15px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+`;
+
 const ParticipantItem = styled.div`
   display: flex;
   justify-content: space-between;
@@ -103,6 +119,7 @@ function Room() {
   const navigate = useNavigate();
   const [nickname, setNickname] = useState('');
   const [participants, setParticipants] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [joined, setJoined] = useState(false);
@@ -164,7 +181,13 @@ function Room() {
         <h1 className="title">🎯 방 참여</h1>
         <p className="subtitle">닉네임을 입력하여 방에 참여하세요</p>
         
-        <RoomContainer>
+        {currentUser && (
+        <UserInfo>
+          {currentUser.nickname} #{currentUser.number || 0}
+        </UserInfo>
+      )}
+      
+      <RoomContainer>
           <JoinForm>
             <input
               type="text"
@@ -198,6 +221,12 @@ function Room() {
     <div className="card">
       <h1 className="title">🎯 방 {roomId}</h1>
       <p className="subtitle">현재 참가자 목록</p>
+      
+      {currentUser && (
+        <UserInfo>
+          {currentUser.nickname} #{currentUser.number || 0}
+        </UserInfo>
+      )}
       
       <RoomContainer>
         <ParticipantList>
