@@ -79,12 +79,22 @@ app.post('/api/admin/login', (req, res) => {
 
 // 관리자 비밀번호 변경 (관리자 전용)
 app.post('/api/admin/password', requireAdmin, (req, res) => {
-  const { newPassword } = req.body || {};
+  const { newPassword, currentPassword } = req.body || {};
+  
   if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 4) {
     return res.status(400).json({ success: false, message: '새 비밀번호가 유효하지 않습니다.' });
   }
+  
+  // 현재 비밀번호 확인
+  if (currentPassword) {
+    const current = readAdminPassword();
+    if (currentPassword !== current) {
+      return res.status(401).json({ success: false, message: '현재 비밀번호가 틀렸습니다.' });
+    }
+  }
+  
   writeAdminPassword(newPassword);
-  // 토큰은 유지 (원하면 무효화 로직 가능)
+  adminPassword = newPassword; // 메모리 변수도 즉시 업데이트
   res.json({ success: true, message: '비밀번호가 변경되었습니다.' });
 });
 
@@ -111,6 +121,16 @@ app.post('/api/admin/rooms', requireAdmin, (req, res) => {
 // 방 삭제 (관리자 전용)
 app.delete('/api/admin/rooms/:roomId', requireAdmin, (req, res) => {
   const { roomId } = req.params;
+  const { adminPassword: inputPassword } = req.body || {};
+  
+  // 비밀번호 확인
+  if (inputPassword) {
+    const current = readAdminPassword();
+    if (inputPassword !== current) {
+      return res.status(401).json({ success: false, message: '비밀번호가 틀렸습니다.' });
+    }
+  }
+  
   if (!rooms[roomId]) {
     return res.status(404).json({ success: false, message: '존재하지 않는 방입니다.' });
   }

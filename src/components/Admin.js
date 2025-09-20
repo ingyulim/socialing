@@ -105,15 +105,43 @@ export default function Admin() {
   };
 
   const changePassword = async () => {
+    if (!newPassword.trim()) {
+      setMessage('새 비밀번호를 입력하세요.');
+      return;
+    }
+
+    const confirmPassword = prompt('비밀번호를 변경하시겠습니까?\n\n확인을 위해 현재 관리자 비밀번호를 입력하세요:');
+    
+    if (!confirmPassword) {
+      return; // 취소
+    }
+
     setMessage('');
     try {
-      const res = await axios.post(`http://${window.location.hostname}:3001/api/admin/password`, { newPassword }, { headers });
+      console.log('비밀번호 변경 요청:', {
+        url: `http://${window.location.hostname}:3001/api/admin/password`,
+        newPassword,
+        currentPassword: confirmPassword,
+        headers
+      });
+      
+      const res = await axios.post(`http://${window.location.hostname}:3001/api/admin/password`, { 
+        newPassword,
+        currentPassword: confirmPassword 
+      }, { headers });
+      
+      console.log('비밀번호 변경 응답:', res.data);
+      
       if (res.data.success) {
         setMessage('비밀번호가 변경되었습니다.');
         setNewPassword('');
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        setMessage(res.data.message || '비밀번호 변경 실패');
       }
     } catch (e) {
-      setMessage('비밀번호 변경 실패.');
+      console.error('비밀번호 변경 오류:', e);
+      setMessage(e.response?.data?.message || '비밀번호 변경 실패');
     }
   };
 
@@ -196,14 +224,26 @@ export default function Admin() {
 
 
   const deleteRoom = async (roomId) => {
+    const confirmPassword = prompt(`방 ${roomId}을(를) 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없으며, 모든 참여자 데이터도 함께 삭제됩니다.\n\n확인을 위해 관리자 비밀번호를 입력하세요:`);
+    
+    if (!confirmPassword) {
+      return; // 취소
+    }
+
     setMessage('');
     try {
-      const res = await axios.delete(`http://${window.location.hostname}:3001/api/admin/rooms/${roomId}`, { headers });
+      const res = await axios.delete(`http://${window.location.hostname}:3001/api/admin/rooms/${roomId}`, { 
+        headers,
+        data: { adminPassword: confirmPassword }
+      });
+      
       if (res.data.success) {
+        setMessage(`방 ${roomId}이(가) 삭제되었습니다.`);
         loadRooms();
+        setTimeout(() => setMessage(''), 3000);
       }
     } catch (e) {
-      setMessage('방 삭제 실패');
+      setMessage(e.response?.data?.message || '방 삭제 실패');
     }
   };
 
